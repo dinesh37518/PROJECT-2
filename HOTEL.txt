@@ -1,0 +1,373 @@
+import java.util.*;
+
+public class Main {
+    static Scanner scanner = new Scanner(System.in);
+    static ArrayList<OrderItem> cart = new ArrayList<>();
+    static double totalAmount = 0.0;
+    static String hotelName = "ROYAL HOTEL";
+    
+    public static void main(String[] args) {
+        try {
+            runHotelSystem();
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            scanner.close();
+        }
+    }
+    
+    static void runHotelSystem() {
+        showWelcomePage();
+        
+        boolean continueOrdering = true;
+        while (continueOrdering) {
+            showCategories();
+            
+            if (!cart.isEmpty()) {
+                showOrderSummary();
+                showPaymentPage();
+                showConfirmation();
+                
+                System.out.println("\n╔════════════════════════════════════════════════╗");
+                System.out.println("║        Do you want another order?              ║");
+                System.out.println("╚════════════════════════════════════════════════╝");
+                System.out.println("\n  1. Yes - New Order");
+                System.out.println("  2. No - Exit");
+                System.out.print("\n👉 Enter choice: ");
+                
+                String choice = scanner.nextLine().trim();
+                
+                if (choice.equals("2")) {
+                    continueOrdering = false;
+                    System.out.println("\n✅ Thank you for visiting " + hotelName + "!");
+                    System.out.println("Goodbye! 👋\n");
+                } else {
+                    cart.clear();
+                    totalAmount = 0.0;
+                    System.out.println("\n🔄 Starting new order...");
+                    waitForEnter();
+                }
+            }
+        }
+    }
+    
+    // ============= WELCOME PAGE =============
+    static void showWelcomePage() {
+        System.out.println("\n╔════════════════════════════════════════════════╗");
+        System.out.println("║                                                ║");
+        System.out.println("║          🏨  " + hotelName + "  🏨           ║");
+        System.out.println("║                                                ║");
+        System.out.println("║                  WELCOME!                      ║");
+        System.out.println("║                                                ║");
+        System.out.println("╚════════════════════════════════════════════════╝");
+        waitForEnter();
+    }
+    
+    // ============= CATEGORIES PAGE =============
+    static void showCategories() {
+        boolean goToCheckout = false;
+        
+        while (!goToCheckout) {
+            System.out.println("\n\n╔════════════════════════════════════════════════╗");
+            System.out.println("║  🏨 " + hotelName + "                              ║");
+            System.out.println("╚════════════════════════════════════════════════╝");
+            System.out.println("\n           📋 SELECT CATEGORY\n");
+            System.out.println("  1. 🍴 Starters");
+            System.out.println("  2. 🍛 Main Course");
+            System.out.println("  3. 🍰 Desserts");
+            System.out.println("  4. ☕ Beverages");
+            System.out.println("  5. 🛒 View Cart & Checkout");
+            System.out.println("  0. ❌ Exit");
+            
+            if (!cart.isEmpty()) {
+                System.out.println("\n  📦 Items in cart: " + cart.size());
+                System.out.println("  💰 Current Total: ₹" + String.format("%.2f", totalAmount));
+            }
+            
+            System.out.print("\n👉 Enter your choice: ");
+            String input = scanner.nextLine().trim();
+            
+            switch (input) {
+                case "1":
+                    showMenu("Starters");
+                    break;
+                case "2":
+                    showMenu("Main Course");
+                    break;
+                case "3":
+                    showMenu("Desserts");
+                    break;
+                case "4":
+                    showMenu("Beverages");
+                    break;
+                case "5":
+                    if (cart.isEmpty()) {
+                        System.out.println("\n❌ Your cart is empty! Please add items first.");
+                        waitForEnter();
+                    } else {
+                        goToCheckout = true;
+                    }
+                    break;
+                case "0":
+                    System.out.println("\n👋 Thank you! Goodbye!\n");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("\n❌ Invalid choice! Please enter 0-5.");
+                    waitForEnter();
+            }
+        }
+    }
+    
+    // ============= MENU PAGE =============
+    static void showMenu(String category) {
+        MenuItem[] items = getMenuItems(category);
+        boolean backToCategories = false;
+        
+        while (!backToCategories) {
+            System.out.println("\n\n╔════════════════════════════════════════════════╗");
+            System.out.println("║  🏨 " + hotelName + "                              ║");
+            System.out.println("╚════════════════════════════════════════════════╝");
+            System.out.println("\n           " + category.toUpperCase() + "\n");
+            System.out.println("┌────┬─────────────────────────┬──────────────┐");
+            System.out.println("│ No │ Item Name               │ Price        │");
+            System.out.println("├────┼─────────────────────────┼──────────────┤");
+            
+            for (int i = 0; i < items.length; i++) {
+                System.out.printf("│ %-2d │ %-23s │ ₹%-11.2f│\n", (i + 1), items[i].name, items[i].price);
+            }
+            
+            System.out.println("└────┴─────────────────────────┴──────────────┘");
+            System.out.println("\n  " + (items.length + 1) + ". ⬅ Back to Categories");
+            
+            if (!cart.isEmpty()) {
+                System.out.println("\n  📦 Cart: " + cart.size() + " items | 💰 Total: ₹" + String.format("%.2f", totalAmount));
+            }
+            
+            System.out.print("\n👉 Enter item number (or " + (items.length + 1) + " to go back): ");
+            String input = scanner.nextLine().trim();
+            
+            try {
+                int choice = Integer.parseInt(input);
+                
+                if (choice > 0 && choice <= items.length) {
+                    cart.add(new OrderItem(items[choice - 1].name, items[choice - 1].price));
+                    totalAmount += items[choice - 1].price;
+                    
+                    System.out.println("\n✅ SUCCESS!");
+                    System.out.println("   " + items[choice - 1].name + " added to cart!");
+                    System.out.println("   Price: ₹" + String.format("%.2f", items[choice - 1].price));
+                    System.out.println("   New Total: ₹" + String.format("%.2f", totalAmount));
+                    waitForEnter();
+                    
+                } else if (choice == items.length + 1) {
+                    backToCategories = true;
+                } else {
+                    System.out.println("\n❌ Invalid number! Please try again.");
+                    waitForEnter();
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("\n❌ Please enter a valid number!");
+                waitForEnter();
+            }
+        }
+    }
+    
+    // ============= ORDER SUMMARY PAGE =============
+    static void showOrderSummary() {
+        boolean confirmed = false;
+        
+        while (!confirmed) {
+            System.out.println("\n\n╔════════════════════════════════════════════════╗");
+            System.out.println("║  🏨 " + hotelName + "                              ║");
+            System.out.println("╚════════════════════════════════════════════════╝");
+            System.out.println("\n           📋 ORDER SUMMARY\n");
+            System.out.println("┌────┬─────────────────────────┬──────────────┐");
+            System.out.println("│ No │ Item Name               │ Price        │");
+            System.out.println("├────┼─────────────────────────┼──────────────┤");
+            
+            for (int i = 0; i < cart.size(); i++) {
+                OrderItem item = cart.get(i);
+                System.out.printf("│ %-2d │ %-23s │ ₹%-11.2f│\n", (i + 1), item.name, item.price);
+            }
+            
+            System.out.println("├────┴─────────────────────────┼──────────────┤");
+            System.out.printf("│ TOTAL AMOUNT                 │ ₹%-11.2f│\n", totalAmount);
+            System.out.println("└──────────────────────────────┴──────────────┘");
+            
+            System.out.println("\n  1. ✏  Edit Order (Add More Items)");
+            System.out.println("  2. ✓  Confirm & Proceed to Payment");
+            System.out.print("\n👉 Enter your choice: ");
+            
+            String choice = scanner.nextLine().trim();
+            
+            if (choice.equals("1")) {
+                return; // Go back to categories
+            } else if (choice.equals("2")) {
+                confirmed = true;
+            } else {
+                System.out.println("\n❌ Invalid choice! Please enter 1 or 2.");
+                waitForEnter();
+            }
+        }
+    }
+    
+    // ============= PAYMENT PAGE =============
+    static void showPaymentPage() {
+        System.out.println("\n\n╔════════════════════════════════════════════════╗");
+        System.out.println("║  🏨 " + hotelName + "                              ║");
+        System.out.println("╚════════════════════════════════════════════════╝");
+        System.out.println("\n        💳 SELECT PAYMENT METHOD\n");
+        
+        System.out.println("  Total Amount: ₹" + String.format("%.2f", totalAmount));
+        System.out.println("\n  1. 💵 Cash");
+        System.out.println("  2. 📱 UPI (Google Pay / Paytm / PhonePe)");
+        
+        System.out.print("\n👉 Enter your choice: ");
+        String choice = scanner.nextLine().trim();
+        
+        if (choice.equals("2")) {
+            showUPIOptions();
+        } else if (choice.equals("1")) {
+            processPayment("Cash");
+        } else {
+            System.out.println("\n⚠  Invalid choice! Defaulting to Cash payment.");
+            waitForEnter();
+            processPayment("Cash");
+        }
+    }
+    
+    static void showUPIOptions() {
+        System.out.println("\n\n╔════════════════════════════════════════════════╗");
+        System.out.println("║         📱 SELECT UPI PLATFORM                 ║");
+        System.out.println("╚════════════════════════════════════════════════╝");
+        
+        System.out.println("\n  Amount to Pay: ₹" + String.format("%.2f", totalAmount));
+        System.out.println("\n  1. 🟢 Google Pay");
+        System.out.println("  2. 🔵 Paytm");
+        System.out.println("  3. 🟣 PhonePe");
+        
+        System.out.print("\n👉 Enter your choice: ");
+        String choice = scanner.nextLine().trim();
+        
+        String platform = "";
+        switch (choice) {
+            case "1": platform = "Google Pay"; break;
+            case "2": platform = "Paytm"; break;
+            case "3": platform = "PhonePe"; break;
+            default: platform = "UPI"; break;
+        }
+        
+        System.out.println("\n🔄 Redirecting to " + platform + "...");
+        System.out.println("⏳ Please complete payment on your device...");
+        waitForEnter();
+        
+        processPayment(platform);
+    }
+    
+    static void processPayment(String method) {
+        System.out.println("\n⏳ Processing payment...");
+        System.out.println("💳 Payment Method: " + method);
+        System.out.println("💰 Amount: ₹" + String.format("%.2f", totalAmount));
+        waitForEnter();
+        
+        System.out.println("\n✅ PAYMENT SUCCESSFUL!");
+        System.out.println("   Transaction completed via " + method);
+        waitForEnter();
+    }
+    
+    // ============= CONFIRMATION PAGE =============
+    static void showConfirmation() {
+        System.out.println("\n\n╔════════════════════════════════════════════════╗");
+        System.out.println("║                                                ║");
+        System.out.println("║            ✅ ORDER CONFIRMED! ✅              ║");
+        System.out.println("║                                                ║");
+        System.out.println("╚════════════════════════════════════════════════╝");
+        
+        System.out.println("\n           📋 FINAL ORDER DETAILS\n");
+        System.out.println("┌────┬─────────────────────────┬──────────────┐");
+        System.out.println("│ No │ Item Name               │ Price        │");
+        System.out.println("├────┼─────────────────────────┼──────────────┤");
+        
+        for (int i = 0; i < cart.size(); i++) {
+            OrderItem item = cart.get(i);
+            System.out.printf("│ %-2d │ %-23s │ ₹%-11.2f│\n", (i + 1), item.name, item.price);
+        }
+        
+        System.out.println("├────┴─────────────────────────┼──────────────┤");
+        System.out.printf("│ TOTAL PAID                   │ ₹%-11.2f│\n", totalAmount);
+        System.out.println("└──────────────────────────────┴──────────────┘");
+        
+        System.out.println("\n        🎉 Thank you for your order! 🎉");
+        System.out.println("        😊 Please visit again! 😊\n");
+        
+        waitForEnter();
+    }
+    
+    // ============= HELPER METHOD =============
+    static void waitForEnter() {
+        System.out.print("\n⏎ Press ENTER to continue...");
+        scanner.nextLine();
+    }
+    
+    static MenuItem[] getMenuItems(String category) {
+        switch (category) {
+            case "Starters":
+                return new MenuItem[]{
+                    new MenuItem("Paneer Tikka", 180.00),
+                    new MenuItem("Veg Spring Roll", 120.00),
+                    new MenuItem("Chicken Wings", 220.00),
+                    new MenuItem("French Fries", 100.00)
+                };
+                
+            case "Main Course":
+                return new MenuItem[]{
+                    new MenuItem("Butter Chicken", 280.00),
+                    new MenuItem("Paneer Butter Masala", 240.00),
+                    new MenuItem("Veg Biryani", 200.00),
+                    new MenuItem("Chicken Biryani", 260.00),
+                    new MenuItem("Dal Makhani", 180.00)
+                };
+                
+            case "Desserts":
+                return new MenuItem[]{
+                    new MenuItem("Gulab Jamun", 80.00),
+                    new MenuItem("Ice Cream", 100.00),
+                    new MenuItem("Brownie", 120.00),
+                    new MenuItem("Rasmalai", 90.00)
+                };
+                
+            case "Beverages":
+                return new MenuItem[]{
+                    new MenuItem("Cold Coffee", 80.00),
+                    new MenuItem("Tea", 40.00),
+                    new MenuItem("Soft Drink", 50.00),
+                    new MenuItem("Fresh Juice", 90.00)
+                };
+                
+            default:
+                return new MenuItem[0];
+        }
+    }
+    
+    // ============= INNER CLASSES =============
+    static class MenuItem {
+        String name;
+        double price;
+        
+        MenuItem(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+    }
+    
+    static class OrderItem {
+        String name;
+        double price;
+        
+        OrderItem(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+    }
+}
